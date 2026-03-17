@@ -1,0 +1,120 @@
+---
+title: "Filters and sorting"
+description: "Narrow and sort your RepoHunt results by language, stars, activity, and more."
+---
+
+RepoHunt provides four filters that narrow the GitHub API query before it is sent, plus three sort options that reorder results client-side without re-fetching.
+
+## Accessing filters
+
+Click the **Filters** toggle button above the results area. The filter panel expands inline. Click the button again to collapse it. Filter values persist across searches within the same session.
+
+<Note>
+  Filters are applied to the GitHub API query string before the request is made. Changing a filter requires running a new search — existing results are not retroactively filtered, except for the minimum stars filter which also applies a client-side pass after results arrive.
+</Note>
+
+## Filters
+
+<AccordionGroup>
+  <Accordion title="Language" icon="code">
+    **Filter ID:** `f-lang`
+
+    Appends `language:<value>` to the GitHub search query. Limits results to repositories whose primary language matches the selection.
+
+    | Option | Value sent to GitHub |
+    |---|---|
+    | Any language | *(no filter added)* |
+    | Python | `language:Python` |
+    | JavaScript | `language:JavaScript` |
+    | TypeScript | `language:TypeScript` |
+    | Go | `language:Go` |
+    | Rust | `language:Rust` |
+    | C# | `language:C#` |
+    | Java | `language:Java` |
+    | C++ | `language:C++` |
+    | Ruby | `language:Ruby` |
+    | Swift | `language:Swift` |
+
+    Default: **Any language**
+  </Accordion>
+
+  <Accordion title="Min stars" icon="star">
+    **Filter ID:** `f-stars`
+
+    Appends `stars:>=<value>` to the GitHub search query. Results are also filtered client-side after the API response to catch any edge cases.
+
+    | Option | Stars threshold |
+    |---|---|
+    | Any | 0 (no filter) |
+    | 50+ | 50 |
+    | 100+ | 100 |
+    | 500+ | 500 |
+    | 1k+ | 1 000 |
+    | 5k+ | 5 000 |
+
+    Default: **Any**
+  </Accordion>
+
+  <Accordion title="Last updated" icon="clock">
+    **Filter ID:** `f-updated`
+
+    Appends `pushed:>YYYY-MM-DD` to the GitHub search query. The date is computed at search time by subtracting the selected number of months from today.
+
+    | Option | Cutoff |
+    |---|---|
+    | Any time | *(no filter added)* |
+    | Last month | 1 month ago |
+    | Last 3 months | 3 months ago |
+    | Last 6 months | 6 months ago |
+    | Last year | 12 months ago |
+
+    Default: **Any time**
+  </Accordion>
+
+  <Accordion title="Exclude forks" icon="git-fork">
+    **Filter ID:** `f-forks`
+
+    Appends `fork:false` to the GitHub search query when set to **No forks**.
+
+    | Option | Effect |
+    |---|---|
+    | Include forks | Forks appear in results |
+    | No forks | Forks are excluded from the GitHub query |
+
+    Default: **Include forks**
+
+    <Note>
+      Repositories that are not forks also receive a +5 point bonus in the Repo Score calculation, so original repositories already rank higher by default even when this filter is set to **Include forks**.
+    </Note>
+  </Accordion>
+</AccordionGroup>
+
+## Sorting
+
+The sort controls appear in the stats bar to the right of the results count, after a search has completed. Changing the sort reorders the already-fetched results — no new API call is made.
+
+<Tip>
+  Sort is client-side only. It does not re-fetch from GitHub. If you want results sorted differently from the start, run a new search after changing the sort selection.
+</Tip>
+
+| Sort option | Button ID | Behavior |
+|---|---|---|
+| **Score** | `sort-score` | Sorts by `_score` descending. Default after every search. |
+| **Stars** | `sort-stars` | Sorts by `stargazers_count` descending. |
+| **Recent** | `sort-recent` | Sorts by `pushed_at` descending (most recently pushed first). |
+
+The active sort button is highlighted. Clicking a sort button calls `sortBy(type)`, which updates `currentSort`, re-highlights the active button, and calls `renderRepos(allRepos)` to re-render the card list using `getSortedRepos(repos)`.
+
+## How filters combine
+
+All active filter values are concatenated into a single GitHub search query string before the API call:
+
+```
+"<user query>"
+  + " language:TypeScript"     // if language filter is set
+  + " fork:false"              // if exclude forks is enabled
+  + " pushed:>2025-09-17"      // if last-updated filter is set
+  + " stars:>=100"             // if min-stars filter is set
+```
+
+The final encoded query is passed as the `q` parameter to the GitHub Search API.

@@ -1,80 +1,98 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+description: "Go from zero to your first ranked GitHub repository search in under two minutes."
 ---
 
-## Get started in three steps
+RepoHunt is a browser-based app — no installation required. All you need is a free Groq API key.
 
-Get your documentation site running locally and make your first customization.
+<Steps>
+  <Step title="Get a free Groq API key">
+    Go to [console.groq.com](https://console.groq.com) and sign up for a free account. Once logged in, create a new API key. Your key will start with `gsk_`.
 
-### Step 1: Set up your local environment
+    <Note>
+      RepoHunt stores your key only in your browser's `localStorage`. It is never transmitted to any server other than Groq's own API when generating summaries.
+    </Note>
+  </Step>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Step title="Open RepoHunt">
+    Visit the RepoHunt app at [github.com/Sujosh-Jana/RepoHunt](https://github.com/Sujosh-Jana/RepoHunt).
 
-### Step 2: Deploy your changes
+    On first load, a modal prompts you to enter your Groq API key. Paste your key and click **Save →** (or press Enter).
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    <Tip>
+      To update your key later, click the **⚙ change api key** button below the search bar at any time.
+    </Tip>
+  </Step>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+  <Step title="Enter a search query">
+    Type a query into the search bar and click **Search →** or press Enter. Be descriptive — RepoHunt passes your query directly to the GitHub search API and uses it to rank relevance.
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    Not sure what to search? Click any of the quick-search chips below the search bar to run a pre-filled query:
 
-### Step 3: Go live
+    | Chip | Query sent |
+    |------|-----------|
+    | trading bot | `trading bot` |
+    | admin dashboard | `admin dashboard HTML` |
+    | Python backtesting | `Python backtesting` |
+    | Unity save system | `Unity save system` |
+    | AI agent | `open source AI agent` |
+    | web scraper | `web scraper Python` |
+    | realtime chat | `realtime chat app` |
+    | markdown editor | `markdown editor` |
+  </Step>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+  <Step title="Apply filters (optional)">
+    Click **Filters** to narrow results before or after searching. The following filters are available:
+
+    | Filter | Options |
+    |--------|---------|
+    | **Language** | Python, JavaScript, TypeScript, Go, Rust, C#, Java, C++, Ruby, Swift |
+    | **Min Stars** | Any, 50+, 100+, 500+, 1k+, 5k+ |
+    | **Last Updated** | Any time, Last month, Last 3 months, Last 6 months, Last year |
+    | **Exclude Forks** | Include forks, No forks |
+
+    Filters are applied as GitHub search qualifiers, so results reflect the constraints before ranking.
+  </Step>
+
+  <Step title="Browse and sort your results">
+    Results appear as ranked cards. Each card shows:
+
+    - **Repo name and owner** — links directly to GitHub
+    - **Language tag** — the primary language detected by GitHub
+    - **Star count** and **fork count**
+    - **Last updated** — how recently the repo was pushed to
+    - **Repo Score badge** — a letter grade (S / A / B / C / D) with a numeric score from 0–100, calculated from stars, recency, description quality, topics, license, and query relevance
+    - **AI summary** — a one-sentence analysis generated by `llama-3.1-8b-instant` via Groq, describing what the repo is useful for and its standout quality
+    - **Topics** — up to five GitHub topic tags
+    - **View on GitHub** link
+
+    <Tip>
+      The first result is labeled **top pick** — it is the highest-scoring repo for your query.
+    </Tip>
+
+    Use the **sort** controls in the results bar to reorder results:
+
+    | Sort | Behavior |
+    |------|----------|
+    | **Score** | Ranked by RepoHunt's composite quality score (default) |
+    | **Stars** | Sorted by total GitHub star count, descending |
+    | **Recent** | Sorted by most recent push date, descending |
+  </Step>
+</Steps>
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Understanding the Repo Score" icon="chart-bar" href="/features/scoring">
+    Learn how the S–D grade and 0–100 numeric score are calculated from stars, recency, topics, and relevance.
+  </Card>
+  <Card title="AI summaries" icon="sparkles" href="/features/ai-summaries">
+    See how RepoHunt uses Groq's `llama-3.1-8b-instant` model to generate per-repo analysis.
+  </Card>
+  <Card title="Filters reference" icon="filter" href="/features/filters">
+    Full reference for all search filters and how they map to GitHub search qualifiers.
+  </Card>
+  <Card title="Use cases" icon="lightbulb" href="/guides/use-cases">
+    Real-world examples of how to use RepoHunt to discover the best repositories for your project.
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

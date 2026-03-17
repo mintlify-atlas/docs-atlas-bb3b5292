@@ -1,0 +1,118 @@
+---
+title: "Repo scoring"
+description: "How RepoHunt calculates the 0–100 Repo Score and assigns letter grades S through D."
+---
+
+Every repository returned by a search receives a **Repo Score** between 0 and 100. The score is a composite of signals that indicate quality, activity, and relevance. It is calculated entirely in the browser by `scoreRepo(repo, query)` immediately after the GitHub API response arrives.
+
+## Letter grades
+
+`scoreGrade(score)` maps a numeric score to a letter grade:
+
+| Grade | Score range | Badge color |
+|---|---|---|
+| S | 85 – 100 | Purple |
+| A | 70 – 84 | Green |
+| B | 55 – 69 | Cyan |
+| C | 40 – 54 | Amber |
+| D | 0 – 39 | Red |
+
+The badge appears in the top-right corner of every repository card and shows both the letter grade and the raw numeric score.
+
+## Scoring breakdown
+
+The total score is the sum of all components, capped at 100.
+
+| Component | Max pts | Logic |
+|---|---|---|
+| Stars | 40 | `Math.min(40, Math.log10(stars + 1) * 14)` |
+| Recent activity | 25 | Tiered by months since last push (see table below) |
+| Description | 5 | `+5` if description length > 20 characters |
+| Topics | 5 | `+5` if the repo has at least one topic |
+| Not a fork | 5 | `+5` if `fork === false` |
+| Open issues | 5 | `Math.min(5, issues / 20)` for issues between 1 and 499 |
+| License | 5 | `+5` if the repo has a license |
+| Hidden gem | 5 | `+5` if stars < 1 000 AND last push < 6 months ago |
+| Query relevance | 20 | Up to `+5` per matching query word (see below) |
+| **Total** | **100** | Capped with `Math.min(100, score)` |
+
+### Stars (max 40 pts)
+
+A logarithmic scale rewards popular repositories without letting star count completely dominate:
+
+```javascript
+score += Math.min(40, Math.log10(stars + 1) * 14);
+```
+
+<Note>
+  A repo with 1 star scores ~4 pts. A repo with 1 000 stars scores ~42 pts, but is capped at 40. The log scale means the jump from 10 to 100 stars matters more than the jump from 10 000 to 100 000.
+</Note>
+
+### Recent activity (max 25 pts)
+
+Points are awarded based on how recently the repository was pushed to:
+
+| Months since last push | Points |
+|---|---|
+| < 1 month | 25 |
+| 1 – 2 months | 20 |
+| 3 – 5 months | 15 |
+| 6 – 11 months | 8 |
+| 12 – 23 months | 3 |
+| 24+ months | 0 |
+
+### Open issues (max 5 pts)
+
+```javascript
+if (issues > 0 && issues < 500) score += Math.min(5, issues / 20);
+```
+
+A small number of open issues is treated as a signal of an active project. Zero issues scores 0 pts (either pristine or abandoned). Repos with 500 or more issues score 0 pts (likely overwhelmed). The sweet spot is around 100 open issues, which yields the full 5 pts.
+
+### Query relevance (max 20 pts)
+
+The user's query is split on whitespace into individual words. Each word is checked against a combined string of the repo's name, description, and topics (all lowercased). Each matching word adds 5 pts, capped at 20:
+
+```javascript
+const qw = query.toLowerCase().split(/\s+/);
+const nd = (name + ' ' + description + ' ' + topics.join(' ')).toLowerCase();
+let rel = 0;
+qw.forEach(w => { if (nd.includes(w)) rel += 5; });
+score += Math.min(20, rel);
+```
+
+A 4-word query where all 4 words appear in the repo metadata scores the full 20 pts.
+
+### Hidden gem bonus (5 pts)
+
+A bonus is awarded to low-profile but recently active repositories:
+
+```javascript
+if (stars < 1000 && monthsAgo < 6) score += 5;
+```
+
+<Note>
+  This bonus intentionally surfaces repositories that are too new or niche to have accumulated many stars, but are clearly being maintained. It complements the logarithmic star scaling, which already prevents star count from dominating.
+</Note>
+
+## Score badge
+
+The badge renders the letter grade prominently with the raw number below it. Color coding is applied via CSS classes:
+
+| Grade | CSS class | Visual |
+|---|---|---|
+| S | `score-s` | Purple border, purple text, purple glow |
+| A | `score-a` | Green border, green text, green glow |
+| B | `score-b` | Cyan border, cyan text, cyan glow |
+| C | `score-c` | Amber border, amber text |
+| D | `score-d` | Red border, red text |
+
+A **🔥 hot** tag is also added to the tags row whenever a repo's score is ≥ 80, regardless of letter grade.
+
+## What the score means in practice
+
+- **S (85+):** Highly starred, recently maintained, well-described, licensed, and closely matches your query. Rare — expect one or two per search at most.
+- **A (70–84):** Strong across most signals. A reliable first choice for production use or serious projects.
+- **B (55–69):** Decent quality and relevance. Worth evaluating, especially for learning or smaller projects.
+- **C (40–54):** Mediocre signals — may be old, lightly documented, or only loosely related to the query.
+- **D (< 40):** Few quality indicators. Treat with caution; verify manually before adopting.

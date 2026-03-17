@@ -1,0 +1,122 @@
+---
+title: "Search"
+description: "How RepoHunt discovers and displays GitHub repositories for any query."
+---
+
+RepoHunt searches GitHub's repository index and ranks results by a composite quality score. Every search fetches up to 30 repositories, scores each one, and renders the results with AI-generated summaries for the top 8.
+
+## Entering a query
+
+<Steps>
+  <Step title="Type your query">
+    Click the search bar at the top of the page and type any topic, tool name, or description — for example `trading bot`, `Python scraper`, or `Unity save system`.
+  </Step>
+  <Step title="Submit">
+    Press **Enter** or click **Search →**. The button is disabled while a search is in progress.
+  </Step>
+  <Step title="View results">
+    Results appear below the search bar, sorted by Repo Score by default. The stats bar shows how many repositories were found.
+  </Step>
+</Steps>
+
+## Quick search chips
+
+Eight preset chips let you start a search with a single click. Each chip fires `quickSearch()`, which sets the query input and immediately calls `search()`.
+
+| Chip label | Query string sent to GitHub |
+|---|---|
+| trading bot | `trading bot` |
+| admin dashboard | `admin dashboard HTML` |
+| Python backtesting | `Python backtesting` |
+| Unity save system | `Unity save system` |
+| AI agent | `open source AI agent` |
+| web scraper | `web scraper Python` |
+| realtime chat | `realtime chat app` |
+| markdown editor | `markdown editor` |
+
+## GitHub API call
+
+RepoHunt calls the [GitHub Search Repositories API](https://docs.github.com/en/rest/search/search#search-repositories) directly from the browser:
+
+```
+GET https://api.github.com/search/repositories
+  ?q=<encoded-query>
+  &sort=stars
+  &per_page=30
+  &order=desc
+```
+
+Filter values from the Filters panel are appended to the query string before the request is made:
+
+```
+q = "<user query> [language:<lang>] [fork:false] [pushed:>YYYY-MM-DD] [stars:>=N]"
+```
+
+<Note>
+  The `per_page=30` limit is fixed. GitHub's search API returns a maximum of 30 repositories per request; RepoHunt does not paginate.
+</Note>
+
+After the response arrives, each repository is scored with `scoreRepo(repo, query)` and the `_score` field is attached to the repo object. If a minimum-stars filter is active, a second client-side pass removes any results below the threshold.
+
+## Loading states
+
+Two sequential status messages are shown in the loading indicator while a search runs:
+
+1. **`searching github...`** — shown while the GitHub API request is in flight.
+2. **`ranking repos...`** — shown briefly after repos are returned and scoring is running.
+
+Once ranking is complete the loader is hidden and results are rendered.
+
+## Repository cards
+
+Each repository is rendered as a card. The cards animate in staggered from the top.
+
+<Columns cols={2}>
+  <Card title="Header row" icon="id-card">
+    Owner and repo name as a link to GitHub (`owner / repo`). The first result in the current sort order receives a **top pick** badge. Repos with a score ≥ 80 receive a **🔥 hot** badge.
+  </Card>
+  <Card title="Score badge" icon="medal">
+    A 46 × 46 px tile in the top-right corner showing the letter grade (S / A / B / C / D) and the raw numeric score (0–100). Color-coded by grade.
+  </Card>
+  <Card title="Tags row" icon="tags">
+    Four inline tags: language, star count, fork count, and last-pushed date. The date tag turns red when the repo hasn't been pushed to in more than 18 months.
+  </Card>
+  <Card title="Description" icon="align-left">
+    The repository's own description text, HTML-escaped before rendering.
+  </Card>
+  <Card title="AI summary" icon="sparkles">
+    A highlighted block with a pulsing purple dot while the summary is loading. The dot turns solid green once the AI response has arrived. Only the top 8 repos (by current sort order) receive summaries.
+  </Card>
+  <Card title="Footer" icon="link">
+    Up to 5 topic tags from the repository's GitHub topics, plus a **view on github** link button.
+  </Card>
+</Columns>
+
+### Number formatting
+
+Star and fork counts are formatted by `formatNumber(n)`:
+
+- Numbers below 1 000 are shown as-is: `842`
+- Numbers ≥ 1 000 are shortened to one decimal place with a `k` suffix, dropping the `.0` when it is zero: `1.2k`, `34k`
+
+### Date formatting
+
+The last-pushed date is rendered by `timeAgo(d)` relative to the current time:
+
+| Elapsed time | Display |
+|---|---|
+| 0–1 days | `today` |
+| 2–6 days | `Nd ago` (e.g. `3d ago`) |
+| 7–29 days | `Nw ago` (e.g. `2w ago`) |
+| 30–364 days | `Nmo ago` (e.g. `4mo ago`) |
+| 365+ days | `Ny ago` (e.g. `2y ago`) |
+
+## Results count
+
+After a successful search the stats bar displays:
+
+```
+found N repos for "<query>"
+```
+
+where `N` is the number of results after all client-side filtering. The bar is hidden before the first search and disappears while a new search is loading.

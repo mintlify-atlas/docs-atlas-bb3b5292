@@ -1,0 +1,75 @@
+---
+title: "Introduction"
+description: "RepoHunt is a smarter GitHub discovery tool that helps developers find the best open-source repositories for any niche, ranked by quality signals and summarized by AI."
+---
+
+## What is RepoHunt?
+
+RepoHunt solves a real problem: GitHub search surfaces too many low-quality or irrelevant repositories. Instead of scrolling through hundreds of results, RepoHunt ranks repositories using multiple quality signals and generates AI summaries so you can quickly identify the best projects for your needs.
+
+Search for something like `trading bot`, `Unity save system`, or `AI agent framework` — RepoHunt returns the top repositories ranked by quality, relevance, and activity, with an AI-generated one-liner for each.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get up and running with RepoHunt in under two minutes
+  </Card>
+  <Card title="How Scoring Works" icon="star" href="/features/scoring">
+    Understand the multi-signal Repo Score (0–100)
+  </Card>
+  <Card title="AI Summaries" icon="sparkles" href="/features/ai-summaries">
+    Learn how Groq powers per-repository AI insights
+  </Card>
+  <Card title="Filters & Search" icon="sliders" href="/features/filters">
+    Filter by language, stars, activity, and more
+  </Card>
+</CardGroup>
+
+## Why not just use GitHub search?
+
+GitHub search is powerful, but it has limitations:
+
+- It prioritizes **raw popularity** (stars) over quality
+- It surfaces **irrelevant or abandoned repositories** alongside active ones
+- It provides **no contextual summary** of what a project actually does or who it's for
+- Niche discovery is **difficult without deep search knowledge**
+
+RepoHunt combines ranking signals with AI to give you a curated, quality-first view of GitHub for any topic.
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Repo Score (0–100)" icon="chart-bar">
+    Every repository gets a composite quality score based on stars, activity, documentation quality, license, topics, and query relevance.
+  </Card>
+  <Card title="Letter Grades (S/A/B/C/D)" icon="graduation-cap">
+    Scores are mapped to letter grades so you can instantly spot the best picks without reading every number.
+  </Card>
+  <Card title="AI-generated summaries" icon="brain">
+    The top 8 results get a one-sentence AI summary via Groq's `llama-3.1-8b-instant` model, explaining what the repo is useful for and its standout quality.
+  </Card>
+  <Card title="Advanced filters" icon="filter">
+    Narrow results by programming language, minimum stars, last updated date, and whether to exclude forks.
+  </Card>
+  <Card title="Sort modes" icon="arrow-up-down">
+    Re-sort any result set by Score, Stars, or Most Recent push — without re-fetching from GitHub.
+  </Card>
+  <Card title="Quick search chips" icon="bolt">
+    One-click chips for common developer niches: trading bot, AI agent, Python backtesting, Unity save system, and more.
+  </Card>
+</CardGroup>
+
+## Tech stack
+
+RepoHunt is a single-file browser application — no backend, no build step, no dependencies to install.
+
+| Layer | Technology |
+|---|---|
+| Frontend | HTML, CSS, JavaScript |
+| Font | JetBrains Mono |
+| GitHub data | GitHub Search API (unauthenticated) |
+| AI summaries | Groq API (`llama-3.1-8b-instant`) |
+| Key storage | Browser `localStorage` |
+
+<Note>
+Your Groq API key is stored only in your browser's `localStorage`. It is never transmitted to any server other than Groq's own API endpoint.
+</Note>

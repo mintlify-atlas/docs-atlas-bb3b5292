@@ -1,0 +1,75 @@
+---
+title: "API key setup"
+description: "How to get a free Groq API key and configure it in RepoHunt for AI-powered repository summaries."
+---
+
+RepoHunt uses [Groq](https://console.groq.com) to generate AI summaries for the top results in each search. You need a Groq API key to use this feature. Groq offers a free tier — no credit card required.
+
+## Why a Groq API key is needed
+
+After fetching and ranking results from the GitHub API, RepoHunt sends the top 8 repositories to Groq's API and asks `llama-3.1-8b-instant` to generate a one-sentence summary for each. This call requires an authenticated API key.
+
+Without a key, the search button opens the API key modal instead of running a search. There is no way to bypass this — the key is required for the app to function.
+
+## Getting a free key
+
+<Steps>
+  <Step title="Create a Groq account">
+    Go to [console.groq.com](https://console.groq.com) and sign up for a free account. No credit card is required.
+  </Step>
+
+  <Step title="Navigate to API Keys">
+    Once logged in, open the left sidebar and click **API Keys**.
+  </Step>
+
+  <Step title="Create a new key">
+    Click **Create API Key**, give it a name (e.g. `repohunt`), and confirm. The key is displayed once — copy it immediately.
+
+    Your key will start with `gsk_`.
+
+    <Warning>
+      Groq only shows the full key once at creation time. If you close the dialog without copying it, you will need to create a new key.
+    </Warning>
+  </Step>
+</Steps>
+
+## Entering the key in RepoHunt
+
+<Steps>
+  <Step title="Open the app">
+    Open `repohunt2.html` in your browser. On first load, a modal appears prompting you to enter your Groq API key.
+  </Step>
+
+  <Step title="Paste your key and save">
+    Paste your `gsk_...` key into the input field and click **Save →** or press Enter.
+
+    The modal closes and the app is ready to use.
+  </Step>
+</Steps>
+
+<Note>
+  Your key is saved in your browser's `localStorage` under the key name `repohunt_groq_key`. It persists across browser sessions, so you only need to enter it once per browser. If you clear your browser's `localStorage` or use a different browser or device, you will be prompted to enter the key again.
+</Note>
+
+## Changing the key later
+
+To update or replace your key at any time:
+
+1. Click the **⚙ change api key** button below the search bar.
+2. The key modal opens with your current key pre-filled.
+3. Clear the field, paste your new key, and click **Save →**.
+
+## Privacy and security
+
+<Warning>
+  Never share your Groq API key publicly. Anyone who has your key can make API calls that count against your quota.
+</Warning>
+
+RepoHunt handles your key as follows:
+
+- The key is stored **only** in your browser's `localStorage`. It is never sent to any RepoHunt server (there is no RepoHunt server — the app runs entirely in your browser).
+- The key is transmitted **only** to Groq's API at `https://api.groq.com/openai/v1/chat/completions` when generating summaries.
+- The key is **not** included in GitHub API requests.
+- The key is **scoped to the browser and device** where it was entered. It does not sync across devices.
+
+You can verify this by inspecting the source of `repohunt2.html` — the only outbound requests in the app are to `https://api.github.com` (unauthenticated) and `https://api.groq.com` (with your key in the `Authorization` header).

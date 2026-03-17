@@ -1,0 +1,101 @@
+---
+title: "AI summaries"
+description: "How RepoHunt uses Groq's LLM to generate one-sentence insights for each discovered repository."
+---
+
+After search results appear, RepoHunt sends the top 8 repositories to [Groq](https://groq.com) and generates a one-sentence summary for each. The summary tells you what the repo is useful for and calls out its standout quality — so you can skim results faster without clicking through to GitHub.
+
+## What a summary looks like
+
+Each repository card contains an **AI Analysis** block below the description. While the summary is loading, the block shows `analyzing...` with a pulsing purple dot. Once the Groq response arrives and the summary is applied, the dot turns solid green.
+
+Example output:
+
+> A production-ready trading bot framework for Python with backtesting and live execution support — most actively maintained.
+
+Summaries are capped at 20 words and always include a standout quality label such as:
+- `most production-ready`
+- `best for beginners`
+- `underrated gem`
+- `most actively maintained`
+
+## Which repos get summaries
+
+Only the **top 8 repositories** by the current sort order receive AI summaries. The slice is taken from `getSortedRepos(repos).slice(0, 8)` after the search results are rendered.
+
+<Note>
+  Changing the sort order after results load does not trigger a new AI request. Summaries remain attached to the same 8 repos that were ranked highest at the moment the search completed.
+</Note>
+
+## Model
+
+RepoHunt uses Groq's **`llama-3.1-8b-instant`** model. The call is made to Groq's OpenAI-compatible chat completions endpoint:
+
+```
+POST https://api.groq.com/openai/v1/chat/completions
+```
+
+Request parameters:
+
+```json
+{
+  "model": "llama-3.1-8b-instant",
+  "max_tokens": 600,
+  "temperature": 0.4,
+  "messages": [{ "role": "user", "content": "<prompt>" }]
+}
+```
+
+## Prompt structure
+
+The prompt is constructed by `generateAISummaries(repos, query)`. For each repo, the following fields are included:
+
+```
+<index>. <owner>/<name> — <description or "no description">
+         | Stars: <count>
+         | Lang: <language or "N/A">
+         | Updated: <time-ago string>
+```
+
+The full prompt sent to the model:
+
+```text
+You are a senior developer helping another dev discover great GitHub repos.
+User searched for: "<query>"
+Repos:
+1. owner/repo — description | Stars: 1234 | Lang: Python | Updated: 3d ago
+2. ...
+
+For EACH repo (1-N), write ONE sentence (max 20 words): what it's useful for
++ its standout quality (e.g. "most production-ready", "best for beginners",
+"underrated gem", "most actively maintained").
+Format: just number and sentence, one per line. Be specific. No generic filler.
+```
+
+The response is parsed line-by-line. Lines are matched with `^\d+\.` to extract numbered entries, and each sentence is applied to the corresponding card via `updateAISummary(id, text)`.
+
+## Privacy and architecture
+
+The Groq API call is made **directly from the browser**. RepoHunt has no backend server. Your Groq API key is stored in `localStorage` under the key `repohunt_groq_key` and is sent only to `api.groq.com` — never to any intermediate server.
+
+<Warning>
+  Your Groq API key is stored in plain text in your browser's `localStorage`. Avoid using RepoHunt on shared or public computers.
+</Warning>
+
+## Fallback behavior
+
+If the Groq API call fails for any reason (network error, invalid key, rate limit, etc.), each affected card falls back gracefully:
+
+```javascript
+// On error, use the repo's own GitHub description instead
+el.querySelector('.ai-text').textContent = r.description || 'no summary available.';
+el.classList.add('loaded'); // turns the dot green regardless
+```
+
+The loading dot still turns solid green, and the card shows the repository's own description in place of the AI-generated sentence.
+
+## API key setup
+
+A Groq API key is required before any search can run. On first load, a modal prompts you to enter your key. You can get a free key at [console.groq.com](https://console.groq.com).
+
+To change the key after it has been saved, click the **⚙ change api key** button above the Filters toggle.

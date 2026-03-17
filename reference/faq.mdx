@@ -1,0 +1,99 @@
+---
+title: "FAQ"
+description: "Frequently asked questions about RepoHunt, the Groq API key, scoring, and GitHub search."
+---
+
+<AccordionGroup>
+
+  <Accordion title="Do I need a GitHub account or token?">
+    No. RepoHunt calls GitHub's unauthenticated Search API directly from your browser. No GitHub account, login, or personal access token is required to search for repositories.
+  </Accordion>
+
+  <Accordion title="Why do I need a Groq API key?">
+    The AI-generated summaries shown on each result card are powered by Groq's LLM API. Groq offers a generous free tier, so for typical usage there is no cost. You can get a free key at [console.groq.com](https://console.groq.com).
+  </Accordion>
+
+  <Accordion title="Is my Groq API key safe?">
+    Yes. Your key is stored exclusively in your browser's `localStorage` under the key `repohunt_groq_key`. It is only ever sent to Groq's API endpoint at `https://api.groq.com/openai/v1/chat/completions` — it never passes through any other server or third-party service.
+  </Accordion>
+
+  <Accordion title="Why does RepoHunt only return up to 30 results?">
+    The GitHub Search API returns a maximum of 30 results per page when using `per_page=30`. RepoHunt intentionally does not paginate through additional pages in order to stay within GitHub's unauthenticated rate limits and keep search results fast.
+  </Accordion>
+
+  <Accordion title="Why don't all results have AI summaries?">
+    AI summaries are generated only for the top 8 results (by Repo Score). This keeps Groq API response times fast and minimises API usage, since generating a single batch request for 8 repos is far cheaper than summarising all 30.
+  </Accordion>
+
+  <Accordion title="What does the Repo Score measure?">
+    The Repo Score is a 0–100 composite quality signal. It combines: GitHub star count (logarithmic scale), time since last push, presence of a description, topic tags, license, open issue activity, whether the repo is a fork, and how closely the repository matches your search query. See the [scoring algorithm reference](/reference/scoring-algorithm) for the full breakdown.
+  </Accordion>
+
+  <Accordion title='What is a "hidden gem"?'>
+    A repository with fewer than 1,000 stars that was pushed to within the last 6 months earns a +5 hidden gem bonus to its Repo Score. The bonus is intended to surface high-quality but underrated projects that haven\'t yet accumulated a large following.
+  </Accordion>
+
+  <Accordion title="Can I filter by multiple languages?">
+    No. The current version supports filtering by a single language at a time. Selecting a language appends a `language:` qualifier to the GitHub search query.
+  </Accordion>
+
+  <Accordion title="Does RepoHunt use GitHub's rate limits?">
+    Yes. The unauthenticated GitHub Search API allows up to 10 requests per minute. If you search frequently in a short window, GitHub will return an error and RepoHunt will display a warning message. Waiting a minute before retrying resolves it.
+  </Accordion>
+
+  <Accordion title="Can I use RepoHunt without a Groq API key?">
+    Not currently. The API key modal is displayed before any search can be performed and there is no way to skip it. However, if the Groq API call fails after a key has been saved, RepoHunt falls back gracefully — each card displays the repository's own description instead of an AI summary.
+  </Accordion>
+
+  <Accordion title="How do I remove or change my API key?">
+    Click the **⚙ change api key** button below the search bar to open the key modal and replace the stored value. Alternatively, clear `repohunt_groq_key` directly from your browser's `localStorage` via the developer console:
+
+    ```javascript
+    localStorage.removeItem('repohunt_groq_key');
+    ```
+  </Accordion>
+
+  <Accordion title="Will RepoHunt work offline?">
+    No. RepoHunt is a browser-based tool that makes live requests to both the GitHub Search API and the Groq API. Both require an active internet connection.
+  </Accordion>
+
+  <Accordion title='What is the difference between "Sort by Score" and "Sort by Stars"?'>
+    **Sort by Score** orders results by RepoHunt\'s composite quality ranking, which accounts for recency, description quality, license, community activity, and query relevance alongside star count.
+
+    **Sort by Stars** sorts purely by GitHub star count in descending order. This can favour older or larger projects that have accumulated stars over many years, at the expense of newer, high-quality repos that haven\'t had time to grow.
+
+    A third option, **Sort by Recent**, orders results by `pushed_at` date, newest first.
+  </Accordion>
+
+  <Accordion title="What AI model does RepoHunt use?">
+    RepoHunt uses Groq\'s `llama-3.1-8b-instant` model with the following parameters:
+
+    | Parameter | Value |
+    |---|---|
+    | `model` | `llama-3.1-8b-instant` |
+    | `max_tokens` | `600` |
+    | `temperature` | `0.4` |
+
+    The relatively low temperature (0.4) is chosen to keep summaries factual and consistent rather than creative.
+  </Accordion>
+
+</AccordionGroup>
+
+---
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="API key setup" icon="key" href="/guides/api-key-setup">
+    Step-by-step guide to getting and saving your Groq API key.
+  </Card>
+  <Card title="How scoring works" icon="chart-bar" href="/features/scoring">
+    A user-facing overview of the Repo Score and what each signal means.
+  </Card>
+  <Card title="Running locally" icon="terminal" href="/guides/running-locally">
+    How to run RepoHunt on your own machine.
+  </Card>
+  <Card title="Scoring algorithm reference" icon="code" href="/reference/scoring-algorithm">
+    Complete technical reference with formulas, tables, and source code.
+  </Card>
+</CardGroup>

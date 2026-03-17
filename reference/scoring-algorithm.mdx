@@ -1,0 +1,241 @@
+---
+title: "Scoring algorithm"
+description: "Complete technical reference for the RepoHunt Repo Score algorithm — how 0–100 scores and S–D grades are calculated."
+---
+
+## Overview
+
+Every repository returned by RepoHunt is assigned a **Repo Score** — an integer between 0 and 100 — by the `scoreRepo(repo, query)` function. The score is a composite of eight quality signals plus a query-relevance bonus. Higher scores reflect repositories that are popular, actively maintained, well-documented, and closely matched to your search.
+
+A companion function, `scoreGrade(s)`, maps the numeric score to a letter grade displayed in the score badge.
+
+---
+
+## Input parameters
+
+### `repo` — GitHub API repository object
+
+The function reads the following fields from the GitHub Search API response:
+
+| Field | Type | Used for |
+|---|---|---|
+| `stargazers_count` | integer | Stars component |
+| `pushed_at` | ISO 8601 string | Recency component, hidden gem bonus |
+| `description` | string or null | Description quality component |
+| `topics` | string array | Topics component, query relevance |
+| `fork` | boolean | Fork penalty component |
+| `open_issues_count` | integer | Community activity component |
+| `license` | object or null | License component |
+| `name` | string | Query relevance |
+
+### `query` — the search string
+
+The raw string the user typed into the search box (e.g. `"trading bot"`). It is split on whitespace and each word is checked against the repository's name, description, and topics to calculate the relevance bonus.
+
+---
+
+## Scoring components
+
+| Signal | Points | Condition |
+|---|---|---|
+| Stars | 0 – 40 | `Math.min(40, Math.log10(stars + 1) × 14)` |
+| Recency | 0 – 25 | Time since last push (see table below) |
+| Description quality | 5 | Description exists and is longer than 20 characters |
+| Topics | 5 | At least one topic tag is present |
+| Not a fork | 5 | `repo.fork === false` |
+| Community activity | 0 – 5 | `Math.min(5, open_issues_count / 20)` — only when issues are between 1 and 499 |
+| License | 5 | `repo.license` is not null |
+| Hidden gem bonus | 5 | Fewer than 1,000 stars **and** pushed within the last 6 months |
+| Query relevance | 0 – 20 | +5 per query word found in name + description + topics, capped at 20 |
+
+### Stars component
+
+Uses a base-10 logarithm to compress the wide range of star counts into a 0–40 point scale, rewarding popular repos without letting a single massive project dominate everything else.
+
+```
+Math.min(40, Math.log10(repo.stargazers_count + 1) * 14)
+```
+
+Example values:
+
+| Stars | Points (approx.) |
+|---|---|
+| 0 | 0.0 |
+| 10 | 14.4 |
+| 100 | 28.0 |
+| 1,000 | 42.0 → capped at 40 |
+| 10,000 | 40.0 (capped) |
+| 100,000 | 40.0 (capped) |
+
+### Recency component
+
+Based on the number of calendar months since `repo.pushed_at`.
+
+| Months since last push | Points |
+|---|---|
+| Less than 1 month | 25 |
+| 1 – 2 months | 20 |
+| 3 – 5 months | 15 |
+| 6 – 11 months | 8 |
+| 12 – 23 months | 3 |
+| 24 months or more | 0 |
+
+### Description quality
+
+```
+if (repo.description && repo.description.length > 20) score += 5;
+```
+
++5 points when the repository has a non-empty description of more than 20 characters.
+
+### Topics
+
+```
+if (repo.topics && repo.topics.length > 0) score += 5;
+```
+
++5 points when at least one topic tag is attached to the repository.
+
+### Not a fork
+
+```
+if (!repo.fork) score += 5;
+```
+
++5 points for original repositories. Forks receive no bonus.
+
+### Community activity
+
+```
+const issues = repo.open_issues_count || 0;
+if (issues > 0 && issues < 500) score += Math.min(5, issues / 20);
+```
+
+Up to 5 points based on open issue count — a proxy for active community engagement. Repositories with zero issues (possibly disabled) or 500+ issues (possibly abandoned or understaffed) receive nothing. Maximum of 5 points is reached at 100 open issues.
+
+### License
+
+```
+if (repo.license) score += 5;
+```
+
++5 points when the repository has a detected license, indicating it is safe to use.
+
+### Hidden gem bonus
+
+```
+if (stars < 1000 && monthsAgo < 6) score += 5;
+```
+
++5 points for repositories with fewer than 1,000 stars that were pushed to within the last 6 months. These are potentially high-quality but underrated projects. Note that this bonus cannot stack with a high stars score — a repo with 1,000+ stars is ineligible.
+
+### Query relevance
+
+```
+const qw = query.toLowerCase().split(/\s+/);
+const nd = (
+  (repo.name || '') + ' ' +
+  (repo.description || '') + ' ' +
+  (repo.topics || []).join(' ')
+).toLowerCase();
+let rel = 0;
+qw.forEach(w => { if (nd.includes(w)) rel += 5; });
+score += Math.min(20, rel);
+```
+
+Each word in the search query is checked against a combined string of the repository name, description, and topic tags. +5 points per matching word, capped at 20 points total (i.e. up to 4 words can contribute).
+
+---
+
+## Grade mapping
+
+After the raw score is computed and clamped to 100, `scoreGrade(s)` assigns a letter grade:
+
+| Grade | Minimum score | Badge color |
+|---|---|---|
+| S | 85 | Purple |
+| A | 70 | Green |
+| B | 55 | Cyan |
+| C | 40 | Amber |
+| D | below 40 | Red |
+
+---
+
+## Maximum possible score
+
+The raw sum of all components can theoretically exceed 100. The final score is clamped: `Math.min(100, score)`.
+
+| Component | Max points |
+|---|---|
+| Stars | 40 |
+| Recency | 25 |
+| Description quality | 5 |
+| Topics | 5 |
+| Not a fork | 5 |
+| Community activity | 5 |
+| License | 5 |
+| Hidden gem bonus | 5 |
+| Query relevance | 20 |
+| **Raw total** | **115** |
+| **Clamped total** | **100** |
+
+<Note>
+The hidden gem bonus (+5) conflicts with a high stars score. A repository needs fewer than 1,000 stars to qualify, which limits its stars component to roughly 42 raw points (capped at 40). In practice, a repo cannot simultaneously maximize both.
+</Note>
+
+---
+
+## Source code
+
+The complete scoring functions extracted directly from `repohunt2.html`:
+
+```javascript
+function scoreRepo(repo, query) {
+  let score = 0;
+  const monthsAgo = (Date.now() - new Date(repo.pushed_at)) / (1000*60*60*24*30);
+  const stars = repo.stargazers_count;
+
+  // Stars component — max 40 points
+  score += Math.min(40, Math.log10(stars+1)*14);
+
+  // Recency component — max 25 points
+  if (monthsAgo < 1) score += 25; else if (monthsAgo < 3) score += 20;
+  else if (monthsAgo < 6) score += 15; else if (monthsAgo < 12) score += 8;
+  else if (monthsAgo < 24) score += 3;
+
+  // Description quality — 5 points
+  if (repo.description && repo.description.length > 20) score += 5;
+
+  // Topics — 5 points
+  if (repo.topics && repo.topics.length > 0) score += 5;
+
+  // Not a fork — 5 points
+  if (!repo.fork) score += 5;
+
+  // Community activity — up to 5 points
+  const issues = repo.open_issues_count || 0;
+  if (issues > 0 && issues < 500) score += Math.min(5, issues/20);
+
+  // License — 5 points
+  if (repo.license) score += 5;
+
+  // Hidden gem bonus — 5 points
+  if (stars < 1000 && monthsAgo < 6) score += 5;
+
+  // Query relevance — up to 20 points
+  const qw = query.toLowerCase().split(/\s+/);
+  const nd = ((repo.name||'')+' '+(repo.description||'')+' '+(repo.topics||[]).join(' ')).toLowerCase();
+  let rel = 0; qw.forEach(w => { if (nd.includes(w)) rel += 5; });
+  score += Math.min(20, rel);
+
+  return Math.round(Math.min(100, score));
+}
+
+function scoreGrade(s) {
+  if (s >= 85) return {grade:'S', cls:'score-s'};
+  if (s >= 70) return {grade:'A', cls:'score-a'};
+  if (s >= 55) return {grade:'B', cls:'score-b'};
+  if (s >= 40) return {grade:'C', cls:'score-c'};
+  return {grade:'D', cls:'score-d'};
+}
+```

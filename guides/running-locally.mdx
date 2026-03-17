@@ -1,0 +1,108 @@
+---
+title: "Running locally"
+description: "How to clone and run RepoHunt locally — no build step or dependencies required."
+---
+
+RepoHunt is a single HTML file. There is no build step, no package manager, no server to start. To run it locally, clone the repository and open the file in a browser.
+
+## No dependencies
+
+The entire app — HTML, CSS, and JavaScript — lives in `repohunt2.html`. It has no npm packages, no external dependencies to install, and no backend. Everything runs in the browser using the standard `fetch` API and `localStorage`.
+
+<Note>
+  The app requires internet access to function. It makes live requests to the GitHub Search API and the Groq API. It is not a fully offline tool.
+</Note>
+
+## Steps
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/Sujosh-Jana/RepoHunt.git
+    cd RepoHunt
+    ```
+  </Step>
+
+  <Step title="Open the file in a browser">
+    <Tabs>
+      <Tab title="macOS">
+        ```bash
+        open repohunt2.html
+        ```
+      </Tab>
+      <Tab title="Linux">
+        ```bash
+        xdg-open repohunt2.html
+        ```
+      </Tab>
+      <Tab title="Windows">
+        Double-click `repohunt2.html` in File Explorer, or run the following in Command Prompt:
+
+        ```bash
+        start repohunt2.html
+        ```
+      </Tab>
+      <Tab title="Any OS">
+        Drag and drop `repohunt2.html` into any open browser window.
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Enter your Groq API key">
+    A modal appears on first load asking for your Groq API key. Paste your `gsk_...` key and click **Save →** or press Enter.
+
+    If you don't have a key yet, see the [API key setup guide](/guides/api-key-setup).
+  </Step>
+
+  <Step title="Start searching">
+    Type a query into the search bar and press Enter or click **Search →**. Results appear ranked by the RepoHunt composite score.
+  </Step>
+</Steps>
+
+## Browser compatibility
+
+RepoHunt works in any modern browser. It uses only standard web APIs:
+
+| API | Used for |
+|-----|----------|
+| `fetch` | GitHub and Groq API requests |
+| `localStorage` | Persisting your Groq API key across sessions |
+| CSS custom properties | UI theming |
+
+Chrome, Firefox, Safari, and Edge are all supported. No browser extensions or flags are required.
+
+## Multiple instances
+
+You can open multiple tabs or windows pointing to `repohunt2.html` and run independent searches in each. Tabs share the same `localStorage`, so your API key is available in all of them automatically.
+
+## Customizing the quick search chips
+
+The quick search chips below the search bar are defined directly in the HTML. To add, remove, or rename chips, open `repohunt2.html` in a text editor and find the `.chips` section (around line 361–370):
+
+```html
+<div class="chips">
+  <button class="chip" onclick="quickSearch('trading bot')">trading bot</button>
+  <button class="chip" onclick="quickSearch('admin dashboard HTML')">admin dashboard</button>
+  <button class="chip" onclick="quickSearch('Python backtesting')">Python backtesting</button>
+  <button class="chip" onclick="quickSearch('Unity save system')">Unity save system</button>
+  <button class="chip" onclick="quickSearch('open source AI agent')">AI agent</button>
+  <button class="chip" onclick="quickSearch('web scraper Python')">web scraper</button>
+  <button class="chip" onclick="quickSearch('realtime chat app')">realtime chat</button>
+  <button class="chip" onclick="quickSearch('markdown editor')">markdown editor</button>
+</div>
+```
+
+Each chip calls `quickSearch(query)`, which sets the search input value and immediately triggers a search:
+
+```javascript
+function quickSearch(q) {
+  document.getElementById('q').value = q;
+  search();
+}
+```
+
+To add a new chip, copy any existing `<button class="chip">` line, update the query string passed to `quickSearch()`, and update the button label. The chip renders immediately when the page loads — no build step required.
+
+<Tip>
+  Keep chip labels short (1–3 words) so they fit on one line without wrapping. The query passed to `quickSearch()` can be more descriptive than the label.
+</Tip>

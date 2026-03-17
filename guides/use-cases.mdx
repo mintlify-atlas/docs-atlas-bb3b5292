@@ -1,0 +1,171 @@
+---
+title: "Use cases"
+description: "Real-world examples of how to use RepoHunt to discover the best GitHub repositories for your project."
+---
+
+RepoHunt is built for the moment when you know what you need but don't know which repository to trust. The examples below cover common developer scenarios — each one shows exactly what to type, which filters to apply, and how to read the results.
+
+## Finding open-source trading bots
+
+You want a working algorithmic trading bot to study, extend, or deploy. Quality matters: you need something actively maintained with a real codebase, not a weekend experiment.
+
+**Query:** `trading bot`
+
+**Filters to apply:**
+- **Language:** Python or JavaScript (depending on your stack)
+- **Min Stars:** 100+ (filters out untested experiments)
+- **Exclude Forks:** No forks (finds original projects)
+
+**What to look for in the results:**
+- Score **A or S** repos with recent activity — these combine popularity with maintenance
+- AI summaries mentioning "backtesting", "live trading", or specific exchange support (e.g. Binance, Alpaca)
+- Check topics for tags like `backtesting`, `algorithmic-trading`, or `quantitative-finance`
+- Sort by **Score** first, then switch to **Recent** to compare which ones are still being actively updated
+
+<Tip>
+  Combine this with a more specific query like `crypto trading bot Python` or `stock trading algorithm` to narrow by asset class.
+</Tip>
+
+---
+
+## Discovering AI agent frameworks
+
+You want to build an AI agent and need to evaluate existing frameworks before committing to one.
+
+**Query:** `open source AI agent`
+
+**Filters to apply:**
+- **Min Stars:** 500+ (this space has many half-finished projects)
+- **Last Updated:** Last 6 months (AI tooling moves fast — older repos may be obsolete)
+
+**What to look for in the results:**
+- Sort by **Score** to surface well-maintained projects over viral-but-dead repositories
+- AI summaries that mention specific strengths: "tool-use", "multi-agent", "memory", "planning" — these help you quickly match a framework to your use case
+- The `🔥 hot` tag indicates a score above 80 — a strong signal in fast-moving spaces like AI
+- Look for repos with many topics (visible at the bottom of each card) — well-tagged repos tend to have more organized maintainers
+
+---
+
+## Finding Unity tools and plugins
+
+You're working in Unity and need a specific tool — a save system, inventory manager, or scene loader — without building it from scratch.
+
+**Query:** `Unity save system`
+
+**Filters to apply:**
+- No language filter needed — Unity projects are almost always C#, and GitHub search picks this up via the query context
+- **Last Updated:** Last year (older Unity packages may not support current LTS versions)
+
+**What to look for in the results:**
+- AI summaries that describe ease of integration or specific Unity version compatibility
+- Repos with a description (visible below the tags) — Unity tools without docs are harder to integrate
+- Sort by **Stars** to find the most widely adopted packages, then read the AI summaries to compare their scope
+
+<Note>
+  Try variations like `Unity inventory system`, `Unity dialogue system`, or `Unity pathfinding` to discover tools for specific subsystems.
+</Note>
+
+---
+
+## Python automation and scraping
+
+You need a Python library or framework for web scraping, browser automation, or data extraction.
+
+**Query:** `web scraper Python` or `Python backtesting`
+
+**Filters to apply:**
+- **Language:** Python
+- **Min Stars:** 100+
+
+**What to look for in the results:**
+- AI summaries mentioning specific use cases: "async scraping", "JavaScript rendering", "proxy support", "anti-bot bypass"
+- The **last updated** tag on each card — scraping libraries need frequent maintenance to stay ahead of site changes
+- Sort by **Recent** to find repos with ongoing maintenance, which is especially important in this space
+- Topics like `playwright`, `selenium`, `beautifulsoup`, `scrapy`, or `requests` indicate the underlying stack
+
+---
+
+## Backend frameworks
+
+You want to evaluate backend frameworks or starter projects for a specific language before starting a new service.
+
+**Query:** `Go REST framework` or `Rust web framework` or `Node.js REST API boilerplate`
+
+**Filters to apply:**
+- **Language:** Match the query language (e.g. Go, Rust, JavaScript)
+- **Min Stars:** 500+ for established frameworks; **Any** for boilerplates
+- **Exclude Forks:** No forks to find original projects
+
+**What to look for in the results:**
+- Score **A or S** repos typically indicate frameworks with a broad community and active maintenance
+- AI summaries that distinguish between "full framework", "micro-framework", or "starter template" — useful when you're still deciding your approach
+- Sort by **Stars** to see the dominant choices in the ecosystem, then re-sort by **Score** to check if those dominant choices are still being maintained
+
+---
+
+## Finding developer utilities
+
+You need a specific kind of tool — a markdown editor, admin dashboard, or chat app — to embed or use as a reference implementation.
+
+**Queries to try:**
+- `markdown editor`
+- `realtime chat app`
+- `admin dashboard HTML`
+
+**Filters to apply:**
+- Filter by language if you need a specific stack (e.g. JavaScript for a frontend tool, Python for a backend service)
+- No minimum stars required — some excellent utilities are niche and lightly starred
+
+**What to look for in the results:**
+- AI summaries are especially useful here — they surface which repos are self-contained vs. framework-dependent
+- Check the **fork count** tag (the `⑂` tag) — a high fork-to-star ratio often signals a repo people actively build on top of
+- Topics at the bottom of each card reveal the tech stack at a glance
+
+---
+
+## Reading the results
+
+Every result card surfaces the same set of signals. Here's how to interpret them.
+
+### Score badge
+
+The badge in the top-right corner of each card shows a letter grade and a numeric score from 0–100.
+
+| Grade | Score range | What it means |
+|-------|-------------|---------------|
+| **S** | 85–100 | Excellent across all signals: well-starred, actively maintained, good documentation, license present, highly relevant |
+| **A** | 70–84 | Strong project with minor gaps — likely a solid choice |
+| **B** | 55–69 | Decent project, may be older or lightly documented |
+| **C** | 40–54 | Below average — worth checking manually before committing |
+| **D** | 0–39 | Low confidence — few stars, stale, or missing documentation |
+
+The score is computed from: star count (logarithmic), recency of last push, description completeness, topic tags, license, fork status, open issues, and query relevance. See the [scoring algorithm reference](/reference/scoring-algorithm) for the full breakdown.
+
+### Tags on each card
+
+| Tag | Meaning |
+|-----|---------|
+| Language badge | Primary language detected by GitHub |
+| `★ N` | Total star count |
+| `⑂ N` | Fork count |
+| `⏱ Nd ago` | Time since last push; shown in red/orange if stale (18+ months) |
+| `🔥 hot` | Score above 80 |
+| **top pick** | Highest-scoring result for the current query |
+
+### AI summary
+
+The AI summary (labeled **AI Analysis** on each card) is a one-sentence description generated by Groq's `llama-3.1-8b-instant` model. It is generated for the top 8 results after each search.
+
+The summary tells you:
+- What the repo is **primarily useful for**
+- Its **standout quality** relative to the other results (e.g. "most production-ready", "best for beginners", "underrated gem", "most actively maintained")
+
+Use the AI summary to quickly shortlist 2–3 repos to inspect in detail, rather than opening every result.
+
+### When to change the sort mode
+
+| Sort | Best for |
+|------|----------|
+| **Score** (default) | General discovery — surfaces the best balance of quality, activity, and relevance |
+| **Stars** | Finding the dominant or most widely adopted project in a category |
+| **Recent** | Fast-moving topics (AI, crypto, tooling) where you need actively maintained repos |
