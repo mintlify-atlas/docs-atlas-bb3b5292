@@ -1,0 +1,62 @@
+{
+  "projectType": "saas",
+  "projectName": "RepoHunt",
+  "projectDescription": "A browser-based GitHub discovery tool that ranks open-source repositories by quality signals and generates AI-powered summaries to help developers find the best projects for any niche.",
+  "theme": "palm",
+  "primaryColor": "#7c6dff",
+  "lightColor": "#a99fff",
+  "darkColor": "#4a3acc",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart"]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/search",
+              "features/scoring",
+              "features/ai-summaries",
+              "features/filters"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/use-cases",
+              "guides/api-key-setup",
+              "guides/running-locally"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": ["reference/scoring-algorithm", "reference/faq"]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Smart GitHub repository discovery with multi-signal quality ranking",
+    "AI-generated one-sentence summaries for top repositories via Groq LLM",
+    "Repo Score (0–100) with letter grades (S/A/B/C/D) based on stars, activity, docs, and relevance",
+    "Advanced filters: language, minimum stars, last updated, fork exclusion",
+    "Quick search suggestions for common developer niches",
+    "Sort results by Score, Stars, or Recent activity",
+    "Client-side Groq API key management stored in localStorage"
+  ],
+  "publicApiSurface": [
+    "search() — triggers GitHub API search with current query and filter state",
+    "scoreRepo(repo, query) — scores a repository 0–100 using multi-signal algorithm",
+    "scoreGrade(score) — converts numeric score to letter grade (S/A/B/C/D)",
+    "generateAISummaries(repos, query) — calls Groq API to generate per-repo summaries",
+    "quickSearch(q) — pre-fills the query input and runs a search",
+    "sortBy(type) — re-renders results sorted by 'score', 'stars', or 'recent'",
+    "toggleFilters() — shows/hides the advanced filter panel",
+    "saveKey() / showKeyModal() — manages Groq API key via localStorage"
+  ]
+}
